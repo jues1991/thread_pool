@@ -1,0 +1,39 @@
+main: tid=1, thread_fifo_pool()----------------
+test1: tid=2
+test2: tid=2, a=1, b=2
+test3: tid=2 sleep begin.
+test3: tid=2 sleep end.
+main: tid=1, thread_filo_pool()----------------
+test1: tid=3
+test3: tid=3 sleep begin.
+test3: tid=3 sleep end.
+test2: tid=3, a=1, b=2
+main: tid=1, thread_level_pool()---------------
+test1: tid=4
+test3: tid=4 sleep begin.
+test3: tid=4 sleep end.
+test2: tid=4, a=1, b=2
+main: tid=1, thread_resize_pool()---------------
+test3: tid=6 sleep begin.
+test3: tid=5 sleep begin.
+test3: tid=test3: tid=6 sleep end.
+5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+test3: tid=5 sleep begin.
+test3: tid=5 sleep end.
+main: tid=1, thread_class_function_pool()---------------
+demo::run: tid=7 sleep begin.
+demo::run: tid=7 sleep end.
