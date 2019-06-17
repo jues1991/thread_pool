@@ -56,16 +56,19 @@ namespace jues
 class ThreadPool
 {
 public:
+    // task queue type.
     enum TYPE{
         TYPE_FIFO,
         TYPE_FILO,
         TYPE_LEVEL,
     };
+    // task info.
     struct TaskInfo{
         std::atomic_bool runing;
         std::thread *thread;
     };
 public:
+    // task queue type, thread count.
     inline ThreadPool( const TYPE &type = TYPE_FIFO, const size_t &count = 1 )
     {
         this->m_runing = false;
@@ -80,19 +83,22 @@ public:
     }
 
 public:
+    // task queue type.
     inline TYPE type() const
     {
         return this->m_type;
     }
+    // thread count.
     inline size_t count() const
     {
         return this->m_count;
     }
-
+    // current run task queue count.
     inline size_t workngCount() const
     {
         return this->m_task_working_count;
     }
+    // current waiting run task queue count.
     inline size_t waitingCount()
     {
         std::lock_guard<std::mutex> lock(this->m_task_list_lock);
@@ -115,10 +121,13 @@ public:
         return count;
     }
 
+    // thread pool run state.
     inline bool runing() const
     {
         return this->m_runing;
     }
+
+    // start thread pool admin.
     inline void start()
     {
         std::lock_guard<std::mutex> lock{ this->m_task_pool_lock };
@@ -147,6 +156,8 @@ public:
         }
         ThreadPool::sleep(5);
     }
+
+    // stop thread pool admin.
     inline void stop()
     {
         std::lock_guard<std::mutex> lock{ this->m_task_pool_lock };
@@ -171,6 +182,8 @@ public:
             delete info;
         }
     }
+
+    // reset thread pool thread count.
     inline bool resize( const size_t &count )
     {
         std::lock_guard<std::mutex> lock{ this->m_task_pool_lock };
@@ -231,25 +244,51 @@ public:
         //
         return true;
     }
-    inline void wait()
+
+    // wait all task end.
+    inline void wait( const size_t &milliseconds = 100 )
     {
         while ( 0 < this->waitingCount() )
         {
-            this->sleep(100);
+            this->sleep(milliseconds);
+        }
+    }
+
+    // clear all waiting queue.
+    inline void clear()
+    {
+        std::lock_guard<std::mutex> lock{ this->m_task_list_lock };
+        //
+        switch (this->m_type)
+        {
+        case TYPE_FIFO:
+            this->m_fifo_tasks = std::queue<Task>();
+            break;
+        case TYPE_FILO:
+            this->m_filo_tasks = std::stack<Task>();
+            break;
+
+        case TYPE_LEVEL:
+            this->m_level_tasks.clear();
+            break;
         }
     }
 public:
+    // sleep this thread.
     inline static void sleep( const size_t &milliseconds )
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
 public:
+    // commit one task to queue.
     template<typename _Callable, typename... _Args>
     inline auto commit( _Callable&& __f, _Args&&... __args ) ->std::future<decltype(__f(__args...))>
     {
         return this->commit(0,__f,__args...);
     }
+
+    // commit one have run level task to queue.
     template<typename _Callable, typename... _Args>
     inline auto commit( const int &level, _Callable&& __f, _Args&&... __args ) ->std::future<decltype(__f(__args...))>
     {
@@ -292,6 +331,7 @@ public:
 protected:
     using Task = std::function<void()>;
 
+    // thread run function.
     inline void run( TaskInfo *info )
     {
         this->m_count++;
@@ -331,6 +371,7 @@ protected:
         this->m_count--;
     }
 
+    // get task for queue.
     inline bool getTask( Task *task )
     {
         std::lock_guard<std::mutex> lock{ this->m_task_list_lock };
