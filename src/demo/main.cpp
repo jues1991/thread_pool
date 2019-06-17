@@ -29,7 +29,7 @@
 */
 
 #include <iostream>
-#include "threadpool.h"
+#include <jues/threadpool.h>
 
 using namespace std;
 

@@ -4,8 +4,19 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        main.cpp \
-    threadpool.cpp
+        main.cpp
 
-HEADERS += \
-    threadpool.h
+
+
+
+
+
+
+
+INCLUDEPATH += ../include
+
+
+
+
+
+
