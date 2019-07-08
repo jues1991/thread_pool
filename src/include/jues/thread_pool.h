@@ -1,11 +1,11 @@
 /*
  * Filename:
  * ---------
- * threadpool.h
+ * thread_pool.h
  *
  * Project:
  * --------
- * ThreadPool
+ * thread_pool
  *
  * Description:
  * ------------
@@ -28,8 +28,8 @@
  * http://note.jues.org.cn/node/357
 */
 
-#ifndef THREADPOOL_H
-#define THREADPOOL_H
+#ifndef thread_pool_H
+#define thread_pool_H
 #include <iostream>
 #include <future>
 #include <functional>
@@ -53,7 +53,7 @@ namespace jues
 
 
 
-class ThreadPool
+class thread_pool
 {
 public:
     // task queue type.
@@ -63,13 +63,13 @@ public:
         TYPE_LEVEL,
     };
     // task info.
-    struct TaskInfo{
+    struct task_info{
         std::atomic_bool runing;
         std::thread *thread;
     };
 public:
     // task queue type, thread count.
-    inline ThreadPool( const TYPE &type = TYPE_FIFO, const size_t &count = 1 )
+    inline thread_pool( const TYPE &type = TYPE_FIFO, const size_t &count = 1 )
     {
         this->m_runing = false;
         this->m_type = type;
@@ -77,7 +77,7 @@ public:
         this->m_count_resize = count;
         this->m_task_working_count = 0;
     }
-    inline virtual ~ThreadPool()
+    inline virtual ~thread_pool()
     {
         this->stop();
     }
@@ -94,12 +94,12 @@ public:
         return this->m_count;
     }
     // current run task queue count.
-    inline size_t workngCount() const
+    inline size_t working_count() const
     {
         return this->m_task_working_count;
     }
     // current waiting run task queue count.
-    inline size_t waitingCount()
+    inline size_t waiting_count()
     {
         std::lock_guard<std::mutex> lock(this->m_task_list_lock);
         size_t count = 0;
@@ -140,21 +140,21 @@ public:
         //
         this->m_runing = true;
         const size_t count = this->m_count_resize;
-        TaskInfo *info;
+        task_info *info;
         for ( size_t i=0; count > i;i++ )
         {
-            info = new TaskInfo();
-            info->thread = new std::thread(&ThreadPool::run,this,info);
-            this->m_pool.insert(std::pair<std::thread::id,TaskInfo*>(info->thread->get_id(),info));
-            //this->m_pool.emplace_back(&ThreadPool::run,this);
+            info = new task_info();
+            info->thread = new std::thread(&thread_pool::run,this,info);
+            this->m_pool.insert(std::pair<std::thread::id,task_info*>(info->thread->get_id(),info));
+            //this->m_pool.emplace_back(&thread_pool::run,this);
         }
 
         // wait
         while ( this->m_count != this->m_count_resize )
         {
-            ThreadPool::sleep(5);
+            thread_pool::sleep(5);
         }
-        ThreadPool::sleep(5);
+        thread_pool::sleep(5);
     }
 
     // stop thread pool admin.
@@ -169,7 +169,7 @@ public:
         //
         this->m_runing = false;
         this->m_task_cv.notify_all();
-        TaskInfo *info;
+        task_info *info;
         for (auto it : this->m_pool)
         {
             info = it.second;
@@ -196,12 +196,12 @@ public:
         {
             // add task
             const size_t count = this->m_count_resize - this->m_count;
-            TaskInfo *info;
+            task_info *info;
             for ( size_t i=0; count > i;i++ )
             {
-                info = new TaskInfo();
-                info->thread = new std::thread(&ThreadPool::run,this,info);
-                this->m_pool.insert(std::pair<std::thread::id,TaskInfo*>(info->thread->get_id(),info));
+                info = new task_info();
+                info->thread = new std::thread(&thread_pool::run,this,info);
+                this->m_pool.insert(std::pair<std::thread::id,task_info*>(info->thread->get_id(),info));
             }
         }
 
@@ -214,7 +214,7 @@ public:
 
         // get need clear list
         std::vector<std::thread::id> clear_list;
-        TaskInfo *info;
+        task_info *info;
         for ( auto it : this->m_pool )
         {
             info = it.second;
@@ -248,7 +248,7 @@ public:
     // wait all task end.
     inline void wait( const size_t &milliseconds = 100 )
     {
-        while ( 0 < this->waitingCount() )
+        while ( 0 < this->waiting_count() )
         {
             this->sleep(milliseconds);
         }
@@ -262,10 +262,10 @@ public:
         switch (this->m_type)
         {
         case TYPE_FIFO:
-            this->m_fifo_tasks = std::queue<Task>();
+            this->m_fifo_tasks = std::queue<task>();
             break;
         case TYPE_FILO:
-            this->m_filo_tasks = std::stack<Task>();
+            this->m_filo_tasks = std::stack<task>();
             break;
 
         case TYPE_LEVEL:
@@ -329,10 +329,10 @@ public:
 
 
 protected:
-    using Task = std::function<void()>;
+    using task = std::function<void()>;
 
     // thread run function.
-    inline void run( TaskInfo *info )
+    inline void run( task_info *info )
     {
         this->m_count++;
         info->runing = true;
@@ -341,7 +341,7 @@ protected:
         while (true == this->m_runing)
         {
             std::unique_lock<std::mutex> lock(task_lock);
-            Task task;
+            task task_;
             //
             if ( this->m_count > this->m_count_resize )
             {
@@ -357,10 +357,10 @@ protected:
                 }
 
                 // check task
-                if ( true == this->getTask(&task) )
+                if ( true == this->get_task(&task_) )
                 {
                     this->m_task_working_count++;
-                    task();
+                    task_();
                     this->m_task_working_count--;
                 }
             }
@@ -372,7 +372,7 @@ protected:
     }
 
     // get task for queue.
-    inline bool getTask( Task *task )
+    inline bool get_task( task *task_ )
     {
         std::lock_guard<std::mutex> lock{ this->m_task_list_lock };
         //
@@ -383,7 +383,7 @@ protected:
             {
                 return false;
             }
-            *task = std::move(this->m_fifo_tasks.front());
+            *task_ = std::move(this->m_fifo_tasks.front());
             this->m_fifo_tasks.pop();
             break;
         case TYPE_FILO:
@@ -391,7 +391,7 @@ protected:
             {
                 return false;
             }
-            *task = std::move(this->m_filo_tasks.top());
+            *task_ = std::move(this->m_filo_tasks.top());
             this->m_filo_tasks.pop();
             break;
 
@@ -400,9 +400,9 @@ protected:
             {
                 return false;
             }
-            std::multimap<int,Task>::iterator it = this->m_level_tasks.end();
+            std::multimap<int,task>::iterator it = this->m_level_tasks.end();
             it--;
-            *task = std::move((*it).second);
+            *task_ = std::move((*it).second);
             this->m_level_tasks.erase(it);
             break;
         }
@@ -422,9 +422,9 @@ protected:
     std::atomic_bool m_runing;
 
     // task list
-    std::queue<Task> m_fifo_tasks;
-    std::stack<Task> m_filo_tasks;
-    std::multimap<int,Task> m_level_tasks;
+    std::queue<task> m_fifo_tasks;
+    std::stack<task> m_filo_tasks;
+    std::multimap<int,task> m_level_tasks;
 
     // lock
     std::mutex m_task_list_lock;
@@ -435,7 +435,7 @@ protected:
     std::atomic_size_t m_task_working_count;
 
     // task admin
-    std::map<std::thread::id,TaskInfo*> m_pool;
+    std::map<std::thread::id,task_info*> m_pool;
 };
 
 
@@ -445,4 +445,4 @@ protected:
 
 
 }
-#endif // THREADPOOL_H
+#endif // thread_pool_H

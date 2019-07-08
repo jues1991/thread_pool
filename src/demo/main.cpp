@@ -5,7 +5,7 @@
  *
  * Project:
  * --------
- * ThreadPool
+ * thread_pool
  *
  * Description:
  * ------------
@@ -29,7 +29,7 @@
 */
 
 #include <iostream>
-#include <jues/threadpool.h>
+#include <jues/thread_pool.h>
 
 using namespace std;
 
@@ -49,7 +49,7 @@ int test2( int a, int b )
 void test3( const size_t milliseconds )
 {
     cout<<"test3: tid="<<this_thread::get_id()<<" sleep begin."<<endl;
-    jues::ThreadPool::sleep(milliseconds);
+    jues::thread_pool::sleep(milliseconds);
     cout<<"test3: tid="<<this_thread::get_id()<<" sleep end."<<endl;
 }
 
@@ -59,7 +59,7 @@ void test3( const size_t milliseconds )
 //
 void thread_fifo_pool()
 {
-    jues::ThreadPool fifo_pool( jues::ThreadPool::TYPE_FIFO,1 );
+    jues::thread_pool fifo_pool( jues::thread_pool::TYPE_FIFO,1 );
     //
     fifo_pool.start();
     fifo_pool.commit(test1);
@@ -72,7 +72,7 @@ void thread_fifo_pool()
 //
 void thread_filo_pool()
 {
-    jues::ThreadPool filo_pool( jues::ThreadPool::TYPE_FILO,1 );
+    jues::thread_pool filo_pool( jues::thread_pool::TYPE_FILO,1 );
     //
     filo_pool.start();
     filo_pool.commit(test1);
@@ -85,7 +85,7 @@ void thread_filo_pool()
 //
 void thread_level_pool()
 {
-    jues::ThreadPool level_pool( jues::ThreadPool::TYPE_LEVEL,1 );
+    jues::thread_pool level_pool( jues::thread_pool::TYPE_LEVEL,1 );
     //
     level_pool.start();
     level_pool.commit(-1,test1);
@@ -99,7 +99,7 @@ void thread_level_pool()
 //
 void thread_resize_pool()
 {
-    jues::ThreadPool fifo_pool( jues::ThreadPool::TYPE_FIFO,2 );
+    jues::thread_pool fifo_pool( jues::thread_pool::TYPE_FIFO,2 );
     //
     fifo_pool.start();
     for ( int i =0;10 >i;i++ )
@@ -123,14 +123,14 @@ public:
     void run( const size_t milliseconds )
     {
         cout<<"demo::run: tid="<<this_thread::get_id()<<" sleep begin."<<endl;
-        jues::ThreadPool::sleep(milliseconds);
+        jues::thread_pool::sleep(milliseconds);
         cout<<"demo::run: tid="<<this_thread::get_id()<<" sleep end."<<endl;
     }
 };
 //
 void thread_class_function_pool()
 {
-    jues::ThreadPool level_pool( jues::ThreadPool::TYPE_LEVEL,1 );
+    jues::thread_pool level_pool( jues::thread_pool::TYPE_LEVEL,1 );
     demo d;
     //
     level_pool.start();

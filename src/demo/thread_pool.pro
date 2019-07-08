@@ -12,7 +12,7 @@ SOURCES += \
 
 
 
-
+LIBS += -lpthread
 INCLUDEPATH += ../include
 
 
