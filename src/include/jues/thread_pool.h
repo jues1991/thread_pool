@@ -357,12 +357,14 @@ protected:
                 }
 
                 // check task
-                if ( true == this->get_task(&task_) )
+                if ( false == this->get_task(&task_) )
                 {
-                    this->m_task_working_count++;
-                    task_();
-                    this->m_task_working_count--;
+                    break;
                 }
+
+                this->m_task_working_count++;
+                task_();
+                this->m_task_working_count--;
             }
 
         }
