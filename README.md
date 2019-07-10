@@ -1,2 +1,2 @@
-# ThreadPool
-C++11 ThreadPool
+# thread_pool
+C++11 thread_pool
