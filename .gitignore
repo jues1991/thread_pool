@@ -34,6 +34,4 @@
 
 # QtCreator
 build-*
-/src/threadpool.pro.user
-
-
+/src/demo/thread_pool.pro.user
